@@ -7,13 +7,21 @@ from rasterio.transform import from_origin
 import rch
 
 if __name__ == '__main__':
-    # input_file = './mitch_data/deposition_data_20230113.csv'
-    input_file = './mitch_data/precipitation_data.csv'
+    input_file = './mitch_data/deposition_data_20230113.csv'
+    # input_file = './mitch_data/precipitation_data.csv'
 
+    # read csv and correct column name errors
     df = pd.read_csv(input_file, index_col=0)
     df['longitude'] = -df['longitude'].abs()
     df.columns = [c.replace('/', '') for c in df.columns]
 
+    # parse dates which do not have leading zeros on the months or days and convert to standard format
+    nutrients = pd.Series(df.columns[3:].str.split('_')).apply(lambda a: a[0])
+    dates = pd.Series(df.columns[3:].str.split('_')).apply(lambda a: a[1])
+    dates = pd.to_datetime(dates, format='%m%d%Y').dt.strftime('%Y%m%d')
+    df.columns = np.concatenate([df.columns[:3], nutrients.values + '_' + dates.values])
+
+    # create geopackage of point locations
     epsg = 3857
     pt_gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs='EPSG:4326')
     pt_gdf.to_file(input_file.replace('.csv', '.gkpg'), driver='GPKG')
@@ -21,15 +29,14 @@ if __name__ == '__main__':
     pt_gdf['longitude'] = pt_gdf.geometry.x
     pt_gdf['latitude'] = pt_gdf.geometry.y
 
+    # set interpolation parameters
     res = 30
-
-    xmin = round(pt_gdf.longitude.min(), 0) - 60
-    # xmax = round(pt_gdf.longitude.max(), 0) + 60
-    # ymin = round(pt_gdf.latitude.min(), 0) - 60
-    ymax = round(pt_gdf.latitude.max(), 0) + 120
+    xmin = -12463032
     xmax = -12428250
     ymin = 4867575
+    ymax = 4918525
 
+    # calculate coordinates of raster
     coords, x, y = rch.arrays.uniform_xy_coords(xmin, xmax, ymin, ymax, res)
     xx, yy = np.meshgrid(x, y)
 
