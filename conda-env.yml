@@ -1,0 +1,12 @@
+name: utah-lake
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - rasterio
+  - geopandas
+  - matplotlib
+  - numpy
+  - pandas
+pip:
+  - rch==0.15
