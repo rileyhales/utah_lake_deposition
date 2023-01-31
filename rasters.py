@@ -7,7 +7,7 @@ from rasterio.transform import from_origin
 import rch
 
 if __name__ == '__main__':
-    input_file = './mitch_data/deposition_data_20230113.csv'
+    input_file = './mitch_data/deposition_data_20230131.csv'
     # input_file = './mitch_data/precipitation_data.csv'
 
     # read csv and correct column name errors

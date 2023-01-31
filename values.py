@@ -36,6 +36,9 @@ kg_per_mg = 1 / 1000 / 1000
 l_per_m3 = 1000
 m_per_mm = 1 / 1000
 pixel_area_m2 = res_m * res_m
+lb_per_kg = 2.20462
+tons_per_lb = 1 / 2000
+m_per_in = 1 / 39.3701
 
 for date in unique_dates:
     try:
@@ -54,7 +57,7 @@ for date in unique_dates:
             with rasterio.open(f'./tiffs/{nutrient}_{date}_IDW2_{res_m}m_3857.tiff', 'r') as f:
                 nutrient_raster = f.read(1)
             kg_deposited = np.nansum(
-                nutrient_raster * precip_raster * mask) * kg_per_mg * l_per_m3 * m_per_mm * pixel_area_m2
+                nutrient_raster * precip_raster * mask) * kg_per_mg * l_per_m3 * m_per_in * pixel_area_m2 * lb_per_kg * tons_per_lb
             values[nutrient].append(kg_deposited)
 
         values['date'].append(date)
@@ -73,7 +76,7 @@ df.to_csv('./mitch_data/utah_lake_deposition.csv')
 fig, ax = plt.subplots(figsize=(9, 6), dpi=1000, tight_layout=True)
 df[['cum_tp', 'cum_tn', 'cum_op']].plot(ax=ax)
 fig.suptitle('Cumulative Nutrient Deposition in Utah Lake')
-ax.set_ylabel('Cumulative Nutrient Deposition (kg)')
+ax.set_ylabel('Cumulative Nutrient Deposition (Metric Tons)')
 ax.set_xlabel('Date')
 ax.grid(True)
 fig.savefig('./mitch_data/cum_nut_dep.png')
